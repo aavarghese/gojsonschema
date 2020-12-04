@@ -19,7 +19,7 @@
 // repository-name  gojsonschema
 // repository-desc  An implementation of JSON Schema, based on IETF's Draft v4 - Go language.
 //
-// description      Defines Schema, the main entry to every subSchema.
+// description      Defines Schema, the main entry to every SubSchema.
 //                  Contains the parsing logic and error checking.
 //
 // created          26-02-2013
@@ -53,13 +53,13 @@ func NewSchema(l JSONLoader) (*Schema, error) {
 // Schema holds a schema
 type Schema struct {
 	DocumentReference gojsonreference.JsonReference
-	RootSchema        *subSchema
+	RootSchema        *SubSchema
 	Pool              *schemaPool
 	ReferencePool     *schemaReferencePool
 }
 
 func (d *Schema) parse(document interface{}, Draft Draft) error {
-	d.RootSchema = &subSchema{Property: STRING_ROOT_SCHEMA_PROPERTY, Draft: &Draft}
+	d.RootSchema = &SubSchema{Property: STRING_ROOT_SCHEMA_PROPERTY, Draft: &Draft}
 	return d.parseSchema(document, d.RootSchema)
 }
 
@@ -68,13 +68,13 @@ func (d *Schema) SetRootSchemaName(name string) {
 	d.RootSchema.Property = name
 }
 
-// Parses a subSchema
+// Parses a SubSchema
 //
 // Pretty long function ( sorry :) )... but pretty straight forward, repetitive and boring
 // Not much magic involved here, most of the job is to validate the key names and their values,
-// then the values are copied into subSchema struct
+// then the values are copied into SubSchema struct
 //
-func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema) error {
+func (d *Schema) parseSchema(documentNode interface{}, currentSchema *SubSchema) error {
 
 	if currentSchema.Draft == nil {
 		if currentSchema.Parent == nil {
@@ -156,7 +156,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 			for _, dv := range m[KEY_DEFINITIONS].(map[string]interface{}) {
 				if isKind(dv, reflect.Map, reflect.Bool) {
 
-					newSchema := &subSchema{Property: KEY_DEFINITIONS, Parent: currentSchema}
+					newSchema := &SubSchema{Property: KEY_DEFINITIONS, Parent: currentSchema}
 
 					err := d.parseSchema(dv, newSchema)
 
@@ -298,7 +298,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 		if isKind(m[KEY_ADDITIONAL_PROPERTIES], reflect.Bool) {
 			currentSchema.additionalProperties = m[KEY_ADDITIONAL_PROPERTIES].(bool)
 		} else if isKind(m[KEY_ADDITIONAL_PROPERTIES], reflect.Map) {
-			newSchema := &subSchema{Property: KEY_ADDITIONAL_PROPERTIES, Parent: currentSchema, Ref: currentSchema.Ref}
+			newSchema := &SubSchema{Property: KEY_ADDITIONAL_PROPERTIES, Parent: currentSchema, Ref: currentSchema.Ref}
 			currentSchema.additionalProperties = newSchema
 			err := d.parseSchema(m[KEY_ADDITIONAL_PROPERTIES], newSchema)
 			if err != nil {
@@ -320,7 +320,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 		if isKind(m[KEY_PATTERN_PROPERTIES], reflect.Map) {
 			patternPropertiesMap := m[KEY_PATTERN_PROPERTIES].(map[string]interface{})
 			if len(patternPropertiesMap) > 0 {
-				currentSchema.patternProperties = make(map[string]*subSchema)
+				currentSchema.patternProperties = make(map[string]*SubSchema)
 				for k, v := range patternPropertiesMap {
 					_, err := regexp.MatchString(k, "")
 					if err != nil {
@@ -329,7 +329,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 							ErrorDetails{"pattern": k},
 						))
 					}
-					newSchema := &subSchema{Property: k, Parent: currentSchema, Ref: currentSchema.Ref}
+					newSchema := &SubSchema{Property: k, Parent: currentSchema, Ref: currentSchema.Ref}
 					err = d.parseSchema(v, newSchema)
 					if err != nil {
 						return errors.New(err.Error())
@@ -351,7 +351,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 	// propertyNames
 	if existsMapKey(m, KEY_PROPERTY_NAMES) && *currentSchema.Draft >= Draft6 {
 		if isKind(m[KEY_PROPERTY_NAMES], reflect.Map, reflect.Bool) {
-			newSchema := &subSchema{Property: KEY_PROPERTY_NAMES, Parent: currentSchema, Ref: currentSchema.Ref}
+			newSchema := &SubSchema{Property: KEY_PROPERTY_NAMES, Parent: currentSchema, Ref: currentSchema.Ref}
 			currentSchema.propertyNames = newSchema
 			err := d.parseSchema(m[KEY_PROPERTY_NAMES], newSchema)
 			if err != nil {
@@ -381,7 +381,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 		if isKind(m[KEY_ITEMS], reflect.Slice) {
 			for _, itemElement := range m[KEY_ITEMS].([]interface{}) {
 				if isKind(itemElement, reflect.Map, reflect.Bool) {
-					newSchema := &subSchema{Parent: currentSchema, Property: KEY_ITEMS}
+					newSchema := &SubSchema{Parent: currentSchema, Property: KEY_ITEMS}
 					newSchema.Ref = currentSchema.Ref
 					currentSchema.ItemsChildren = append(currentSchema.ItemsChildren, newSchema)
 					err := d.parseSchema(itemElement, newSchema)
@@ -400,7 +400,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 				currentSchema.itemsChildrenIsSingleSchema = false
 			}
 		} else if isKind(m[KEY_ITEMS], reflect.Map, reflect.Bool) {
-			newSchema := &subSchema{Parent: currentSchema, Property: KEY_ITEMS}
+			newSchema := &SubSchema{Parent: currentSchema, Property: KEY_ITEMS}
 			newSchema.Ref = currentSchema.Ref
 			currentSchema.ItemsChildren = append(currentSchema.ItemsChildren, newSchema)
 			err := d.parseSchema(m[KEY_ITEMS], newSchema)
@@ -424,7 +424,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 		if isKind(m[KEY_ADDITIONAL_ITEMS], reflect.Bool) {
 			currentSchema.additionalItems = m[KEY_ADDITIONAL_ITEMS].(bool)
 		} else if isKind(m[KEY_ADDITIONAL_ITEMS], reflect.Map) {
-			newSchema := &subSchema{Property: KEY_ADDITIONAL_ITEMS, Parent: currentSchema, Ref: currentSchema.Ref}
+			newSchema := &SubSchema{Property: KEY_ADDITIONAL_ITEMS, Parent: currentSchema, Ref: currentSchema.Ref}
 			currentSchema.additionalItems = newSchema
 			err := d.parseSchema(m[KEY_ADDITIONAL_ITEMS], newSchema)
 			if err != nil {
@@ -799,7 +799,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 	}
 
 	if existsMapKey(m, KEY_CONTAINS) && *currentSchema.Draft >= Draft6 {
-		newSchema := &subSchema{Property: KEY_CONTAINS, Parent: currentSchema, Ref: currentSchema.Ref}
+		newSchema := &SubSchema{Property: KEY_CONTAINS, Parent: currentSchema, Ref: currentSchema.Ref}
 		currentSchema.contains = newSchema
 		err := d.parseSchema(m[KEY_CONTAINS], newSchema)
 		if err != nil {
@@ -840,12 +840,12 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 		}
 	}
 
-	// validation : subSchema
+	// validation : SubSchema
 
 	if existsMapKey(m, KEY_ONE_OF) {
 		if isKind(m[KEY_ONE_OF], reflect.Slice) {
 			for _, v := range m[KEY_ONE_OF].([]interface{}) {
-				newSchema := &subSchema{Property: KEY_ONE_OF, Parent: currentSchema, Ref: currentSchema.Ref}
+				newSchema := &SubSchema{Property: KEY_ONE_OF, Parent: currentSchema, Ref: currentSchema.Ref}
 				currentSchema.oneOf = append(currentSchema.oneOf, newSchema)
 				err := d.parseSchema(v, newSchema)
 				if err != nil {
@@ -863,7 +863,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 	if existsMapKey(m, KEY_ANY_OF) {
 		if isKind(m[KEY_ANY_OF], reflect.Slice) {
 			for _, v := range m[KEY_ANY_OF].([]interface{}) {
-				newSchema := &subSchema{Property: KEY_ANY_OF, Parent: currentSchema, Ref: currentSchema.Ref}
+				newSchema := &SubSchema{Property: KEY_ANY_OF, Parent: currentSchema, Ref: currentSchema.Ref}
 				currentSchema.anyOf = append(currentSchema.anyOf, newSchema)
 				err := d.parseSchema(v, newSchema)
 				if err != nil {
@@ -881,7 +881,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 	if existsMapKey(m, KEY_ALL_OF) {
 		if isKind(m[KEY_ALL_OF], reflect.Slice) {
 			for _, v := range m[KEY_ALL_OF].([]interface{}) {
-				newSchema := &subSchema{Property: KEY_ALL_OF, Parent: currentSchema, Ref: currentSchema.Ref}
+				newSchema := &SubSchema{Property: KEY_ALL_OF, Parent: currentSchema, Ref: currentSchema.Ref}
 				currentSchema.allOf = append(currentSchema.allOf, newSchema)
 				err := d.parseSchema(v, newSchema)
 				if err != nil {
@@ -898,7 +898,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 
 	if existsMapKey(m, KEY_NOT) {
 		if isKind(m[KEY_NOT], reflect.Map, reflect.Bool) {
-			newSchema := &subSchema{Property: KEY_NOT, Parent: currentSchema, Ref: currentSchema.Ref}
+			newSchema := &SubSchema{Property: KEY_NOT, Parent: currentSchema, Ref: currentSchema.Ref}
 			currentSchema.not = newSchema
 			err := d.parseSchema(m[KEY_NOT], newSchema)
 			if err != nil {
@@ -915,7 +915,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 	if *currentSchema.Draft >= Draft7 {
 		if existsMapKey(m, KEY_IF) {
 			if isKind(m[KEY_IF], reflect.Map, reflect.Bool) {
-				newSchema := &subSchema{Property: KEY_IF, Parent: currentSchema, Ref: currentSchema.Ref}
+				newSchema := &SubSchema{Property: KEY_IF, Parent: currentSchema, Ref: currentSchema.Ref}
 				currentSchema._if = newSchema
 				err := d.parseSchema(m[KEY_IF], newSchema)
 				if err != nil {
@@ -931,7 +931,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 
 		if existsMapKey(m, KEY_THEN) {
 			if isKind(m[KEY_THEN], reflect.Map, reflect.Bool) {
-				newSchema := &subSchema{Property: KEY_THEN, Parent: currentSchema, Ref: currentSchema.Ref}
+				newSchema := &SubSchema{Property: KEY_THEN, Parent: currentSchema, Ref: currentSchema.Ref}
 				currentSchema._then = newSchema
 				err := d.parseSchema(m[KEY_THEN], newSchema)
 				if err != nil {
@@ -947,7 +947,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 
 		if existsMapKey(m, KEY_ELSE) {
 			if isKind(m[KEY_ELSE], reflect.Map, reflect.Bool) {
-				newSchema := &subSchema{Property: KEY_ELSE, Parent: currentSchema, Ref: currentSchema.Ref}
+				newSchema := &SubSchema{Property: KEY_ELSE, Parent: currentSchema, Ref: currentSchema.Ref}
 				currentSchema._else = newSchema
 				err := d.parseSchema(m[KEY_ELSE], newSchema)
 				if err != nil {
@@ -965,14 +965,14 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 	return nil
 }
 
-func (d *Schema) parseReference(documentNode interface{}, currentSchema *subSchema) error {
+func (d *Schema) parseReference(documentNode interface{}, currentSchema *SubSchema) error {
 	var (
 		refdDocumentNode interface{}
 		dsp              *schemaPoolDocument
 		err              error
 	)
 
-	newSchema := &subSchema{Property: KEY_REF, Parent: currentSchema, Ref: currentSchema.Ref}
+	newSchema := &SubSchema{Property: KEY_REF, Parent: currentSchema, Ref: currentSchema.Ref}
 
 	d.ReferencePool.Add(currentSchema.Ref.String(), newSchema)
 
@@ -1007,7 +1007,7 @@ func (d *Schema) parseReference(documentNode interface{}, currentSchema *subSche
 
 }
 
-func (d *Schema) parseProperties(documentNode interface{}, currentSchema *subSchema) error {
+func (d *Schema) parseProperties(documentNode interface{}, currentSchema *SubSchema) error {
 
 	if !isKind(documentNode, reflect.Map) {
 		return errors.New(formatErrorDescription(
@@ -1019,7 +1019,7 @@ func (d *Schema) parseProperties(documentNode interface{}, currentSchema *subSch
 	m := documentNode.(map[string]interface{})
 	for k := range m {
 		schemaProperty := k
-		newSchema := &subSchema{Property: schemaProperty, Parent: currentSchema, Ref: currentSchema.Ref}
+		newSchema := &SubSchema{Property: schemaProperty, Parent: currentSchema, Ref: currentSchema.Ref}
 		currentSchema.PropertiesChildren = append(currentSchema.PropertiesChildren, newSchema)
 		err := d.parseSchema(m[k], newSchema)
 		if err != nil {
@@ -1030,7 +1030,7 @@ func (d *Schema) parseProperties(documentNode interface{}, currentSchema *subSch
 	return nil
 }
 
-func (d *Schema) parseDependencies(documentNode interface{}, currentSchema *subSchema) error {
+func (d *Schema) parseDependencies(documentNode interface{}, currentSchema *SubSchema) error {
 
 	if !isKind(documentNode, reflect.Map) {
 		return errors.New(formatErrorDescription(
@@ -1064,7 +1064,7 @@ func (d *Schema) parseDependencies(documentNode interface{}, currentSchema *subS
 			}
 
 		case reflect.Map, reflect.Bool:
-			depSchema := &subSchema{Property: k, Parent: currentSchema, Ref: currentSchema.Ref}
+			depSchema := &SubSchema{Property: k, Parent: currentSchema, Ref: currentSchema.Ref}
 			err := d.parseSchema(m[k], depSchema)
 			if err != nil {
 				return err

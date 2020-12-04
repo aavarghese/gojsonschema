@@ -19,7 +19,7 @@
 // repository-name  gojsonschema
 // repository-desc  An implementation of JSON Schema, based on IETF's draft v4 - Go language.
 //
-// description      Extends Schema and subSchema, implements the validation phase.
+// description      Extends Schema and SubSchema, implements the validation phase.
 //
 // created          28-02-2013
 
@@ -61,14 +61,14 @@ func (v *Schema) validateDocument(root interface{}) *Result {
 	return result
 }
 
-func (v *subSchema) subValidateWithContext(document interface{}, context *JsonContext) *Result {
+func (v *SubSchema) subValidateWithContext(document interface{}, context *JsonContext) *Result {
 	result := &Result{}
 	v.validateRecursive(v, document, result, context)
 	return result
 }
 
-// Walker function to validate the json recursively against the subSchema
-func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode interface{}, result *Result, context *JsonContext) {
+// Walker function to validate the json recursively against the SubSchema
+func (v *SubSchema) validateRecursive(currentSubSchema *SubSchema, currentNode interface{}, result *Result, context *JsonContext) {
 
 	if internalLogEnabled {
 		internalLog("validateRecursive %s", context.String())
@@ -266,8 +266,8 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 	result.incrementScore()
 }
 
-// Different kinds of validation there, subSchema / common / array / object / string...
-func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode interface{}, result *Result, context *JsonContext) {
+// Different kinds of validation there, SubSchema / common / array / object / string...
+func (v *SubSchema) validateSchema(currentSubSchema *SubSchema, currentNode interface{}, result *Result, context *JsonContext) {
 
 	if internalLogEnabled {
 		internalLog("validateSchema %s", context.String())
@@ -294,7 +294,7 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 			result.addInternalError(new(NumberAnyOfError), context, currentNode, ErrorDetails{})
 
 			if bestValidationResult != nil {
-				// add error messages of closest matching subSchema as
+				// add error messages of closest matching SubSchema as
 				// that's probably the one the user was trying to match
 				result.mergeErrors(bestValidationResult)
 			}
@@ -320,7 +320,7 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 			result.addInternalError(new(NumberOneOfError), context, currentNode, ErrorDetails{})
 
 			if nbValidated == 0 {
-				// add error messages of closest matching subSchema as
+				// add error messages of closest matching SubSchema as
 				// that's probably the one the user was trying to match
 				result.mergeErrors(bestValidationResult)
 			}
@@ -369,7 +369,7 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 							}
 						}
 
-					case *subSchema:
+					case *SubSchema:
 						dependency.validateRecursive(dependency, currentNode, result, context)
 					}
 				}
@@ -398,7 +398,7 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 	result.incrementScore()
 }
 
-func (v *subSchema) validateCommon(currentSubSchema *subSchema, value interface{}, result *Result, context *JsonContext) {
+func (v *SubSchema) validateCommon(currentSubSchema *SubSchema, value interface{}, result *Result, context *JsonContext) {
 
 	if internalLogEnabled {
 		internalLog("validateCommon %s", context.String())
@@ -455,7 +455,7 @@ func (v *subSchema) validateCommon(currentSubSchema *subSchema, value interface{
 	result.incrementScore()
 }
 
-func (v *subSchema) validateArray(currentSubSchema *subSchema, value []interface{}, result *Result, context *JsonContext) {
+func (v *SubSchema) validateArray(currentSubSchema *SubSchema, value []interface{}, result *Result, context *JsonContext) {
 
 	if internalLogEnabled {
 		internalLog("validateArray %s", context.String())
@@ -492,8 +492,8 @@ func (v *subSchema) validateArray(currentSubSchema *subSchema, value []interface
 					if !currentSubSchema.additionalItems.(bool) {
 						result.addInternalError(new(ArrayNoAdditionalItemsError), context, value, ErrorDetails{})
 					}
-				case *subSchema:
-					additionalItemSchema := currentSubSchema.additionalItems.(*subSchema)
+				case *SubSchema:
+					additionalItemSchema := currentSubSchema.additionalItems.(*SubSchema)
 					for i := nbItems; i != nbValues; i++ {
 						subContext := NewJsonContext(strconv.Itoa(i), context)
 						validationResult := additionalItemSchema.subValidateWithContext(value[i], subContext)
@@ -581,7 +581,7 @@ func (v *subSchema) validateArray(currentSubSchema *subSchema, value []interface
 	result.incrementScore()
 }
 
-func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string]interface{}, result *Result, context *JsonContext) {
+func (v *SubSchema) validateObject(currentSubSchema *SubSchema, value map[string]interface{}, result *Result, context *JsonContext) {
 
 	if internalLogEnabled {
 		internalLog("validateObject %s", context.String())
@@ -653,7 +653,7 @@ func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string
 					)
 
 				}
-			case *subSchema:
+			case *SubSchema:
 				validationResult := ap.subValidateWithContext(value[pk], NewJsonContext(pk, context))
 				result.mergeErrors(validationResult)
 			}
@@ -678,7 +678,7 @@ func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string
 	result.incrementScore()
 }
 
-func (v *subSchema) validatePatternProperty(currentSubSchema *subSchema, key string, value interface{}, result *Result, context *JsonContext) bool {
+func (v *SubSchema) validatePatternProperty(currentSubSchema *SubSchema, key string, value interface{}, result *Result, context *JsonContext) bool {
 
 	if internalLogEnabled {
 		internalLog("validatePatternProperty %s", context.String())
@@ -704,7 +704,7 @@ func (v *subSchema) validatePatternProperty(currentSubSchema *subSchema, key str
 	return true
 }
 
-func (v *subSchema) validateString(currentSubSchema *subSchema, value interface{}, result *Result, context *JsonContext) {
+func (v *SubSchema) validateString(currentSubSchema *SubSchema, value interface{}, result *Result, context *JsonContext) {
 
 	// Ignore JSON numbers
 	if isJSONNumber(value) {
@@ -761,7 +761,7 @@ func (v *subSchema) validateString(currentSubSchema *subSchema, value interface{
 	result.incrementScore()
 }
 
-func (v *subSchema) validateNumber(currentSubSchema *subSchema, value interface{}, result *Result, context *JsonContext) {
+func (v *SubSchema) validateNumber(currentSubSchema *SubSchema, value interface{}, result *Result, context *JsonContext) {
 
 	// Ignore non numbers
 	if !isJSONNumber(value) {
