@@ -27,9 +27,10 @@
 package gojsonschema
 
 import (
-	"github.com/xeipuuv/gojsonreference"
 	"math/big"
 	"regexp"
+
+	"github.com/xeipuuv/gojsonreference"
 )
 
 // Constants
@@ -77,31 +78,31 @@ const (
 )
 
 type subSchema struct {
-	draft *Draft
+	Draft *Draft
 
 	// basic subSchema meta properties
-	id          *gojsonreference.JsonReference
+	Id          *gojsonreference.JsonReference
 	title       *string
 	description *string
 
-	property string
+	Property string
 
 	// Quick pass/fail for boolean schemas
 	pass *bool
 
 	// Types associated with the subSchema
-	types jsonSchemaType
+	Types jsonSchemaType
 
 	// Reference url
-	ref *gojsonreference.JsonReference
+	Ref *gojsonreference.JsonReference
 	// Schema referenced
-	refSchema *subSchema
+	RefSchema *subSchema
 
 	// hierarchy
-	parent                      *subSchema
-	itemsChildren               []*subSchema
+	Parent                      *subSchema
+	ItemsChildren               []*subSchema
 	itemsChildrenIsSingleSchema bool
-	propertiesChildren          []*subSchema
+	PropertiesChildren          []*subSchema
 
 	// validation : number / integer
 	multipleOf       *big.Rat

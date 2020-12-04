@@ -23,7 +23,7 @@ import (
 
 // SchemaLoader is used to load schemas
 type SchemaLoader struct {
-	pool       *schemaPool
+	Pool       *schemaPool
 	AutoDetect bool
 	Validate   bool
 	Draft      Draft
@@ -33,14 +33,14 @@ type SchemaLoader struct {
 func NewSchemaLoader() *SchemaLoader {
 
 	ps := &SchemaLoader{
-		pool: &schemaPool{
+		Pool: &schemaPool{
 			schemaPoolDocuments: make(map[string]*schemaPoolDocument),
 		},
 		AutoDetect: true,
 		Validate:   false,
 		Draft:      Hybrid,
 	}
-	ps.pool.autoDetect = &ps.AutoDetect
+	ps.Pool.autoDetect = &ps.AutoDetect
 
 	return ps
 }
@@ -109,9 +109,9 @@ func (sl *SchemaLoader) AddSchemas(loaders ...JSONLoader) error {
 			}
 		}
 
-		// Directly use the Recursive function, so that it get only added to the schema pool by $id
+		// Directly use the Recursive function, so that it get only added to the schema Pool by $id
 		// and not by the ref of the document as it's empty
-		if err = sl.pool.parseReferences(doc, emptyRef, false); err != nil {
+		if err = sl.Pool.parseReferences(doc, emptyRef, false); err != nil {
 			return err
 		}
 	}
@@ -140,7 +140,7 @@ func (sl *SchemaLoader) AddSchema(url string, loader JSONLoader) error {
 		}
 	}
 
-	return sl.pool.parseReferences(doc, ref, true)
+	return sl.Pool.parseReferences(doc, ref, true)
 }
 
 // Compile loads and compiles a schema
@@ -153,15 +153,15 @@ func (sl *SchemaLoader) Compile(rootSchema JSONLoader) (*Schema, error) {
 	}
 
 	d := Schema{}
-	d.pool = sl.pool
-	d.pool.jsonLoaderFactory = rootSchema.LoaderFactory()
-	d.documentReference = ref
-	d.referencePool = newSchemaReferencePool()
+	d.Pool = sl.Pool
+	d.Pool.jsonLoaderFactory = rootSchema.LoaderFactory()
+	d.DocumentReference = ref
+	d.ReferencePool = newSchemaReferencePool()
 
 	var doc interface{}
 	if ref.String() != "" {
-		// Get document from schema pool
-		spd, err := d.pool.GetDocument(d.documentReference)
+		// Get document from schema Pool
+		spd, err := d.Pool.GetDocument(d.DocumentReference)
 		if err != nil {
 			return nil, err
 		}
@@ -173,8 +173,8 @@ func (sl *SchemaLoader) Compile(rootSchema JSONLoader) (*Schema, error) {
 			return nil, err
 		}
 		// References need only be parsed if loading JSON directly
-		//  as pool.GetDocument already does this for us if loading by reference
-		err = sl.pool.parseReferences(doc, ref, true)
+		//  as Pool.GetDocument already does this for us if loading by reference
+		err = sl.Pool.parseReferences(doc, ref, true)
 		if err != nil {
 			return nil, err
 		}

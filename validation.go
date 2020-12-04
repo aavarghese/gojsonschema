@@ -57,7 +57,7 @@ func (v *Schema) Validate(l JSONLoader) (*Result, error) {
 func (v *Schema) validateDocument(root interface{}) *Result {
 	result := &Result{}
 	context := NewJsonContext(STRING_CONTEXT_ROOT, nil)
-	v.rootSchema.validateRecursive(v.rootSchema, root, result, context)
+	v.RootSchema.validateRecursive(v.RootSchema, root, result, context)
 	return result
 }
 
@@ -89,20 +89,20 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 	}
 
 	// Handle referenced schemas, returns directly when a $ref is found
-	if currentSubSchema.refSchema != nil {
-		v.validateRecursive(currentSubSchema.refSchema, currentNode, result, context)
+	if currentSubSchema.RefSchema != nil {
+		v.validateRecursive(currentSubSchema.RefSchema, currentNode, result, context)
 		return
 	}
 
 	// Check for null value
 	if currentNode == nil {
-		if currentSubSchema.types.IsTyped() && !currentSubSchema.types.Contains(TYPE_NULL) {
+		if currentSubSchema.Types.IsTyped() && !currentSubSchema.Types.Contains(TYPE_NULL) {
 			result.addInternalError(
 				new(InvalidTypeError),
 				context,
 				currentNode,
 				ErrorDetails{
-					"expected": currentSubSchema.types.String(),
+					"expected": currentSubSchema.Types.String(),
 					"given":    TYPE_NULL,
 				},
 			)
@@ -120,9 +120,9 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 
 			isInt := checkJSONInteger(value)
 
-			validType := currentSubSchema.types.Contains(TYPE_NUMBER) || (isInt && currentSubSchema.types.Contains(TYPE_INTEGER))
+			validType := currentSubSchema.Types.Contains(TYPE_NUMBER) || (isInt && currentSubSchema.Types.Contains(TYPE_INTEGER))
 
-			if currentSubSchema.types.IsTyped() && !validType {
+			if currentSubSchema.Types.IsTyped() && !validType {
 
 				givenType := TYPE_INTEGER
 				if !isInt {
@@ -134,7 +134,7 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 					context,
 					currentNode,
 					ErrorDetails{
-						"expected": currentSubSchema.types.String(),
+						"expected": currentSubSchema.Types.String(),
 						"given":    givenType,
 					},
 				)
@@ -157,13 +157,13 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 
 			case reflect.Slice:
 
-				if currentSubSchema.types.IsTyped() && !currentSubSchema.types.Contains(TYPE_ARRAY) {
+				if currentSubSchema.Types.IsTyped() && !currentSubSchema.Types.Contains(TYPE_ARRAY) {
 					result.addInternalError(
 						new(InvalidTypeError),
 						context,
 						currentNode,
 						ErrorDetails{
-							"expected": currentSubSchema.types.String(),
+							"expected": currentSubSchema.Types.String(),
 							"given":    TYPE_ARRAY,
 						},
 					)
@@ -180,13 +180,13 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 			// Map => JSON object
 
 			case reflect.Map:
-				if currentSubSchema.types.IsTyped() && !currentSubSchema.types.Contains(TYPE_OBJECT) {
+				if currentSubSchema.Types.IsTyped() && !currentSubSchema.Types.Contains(TYPE_OBJECT) {
 					result.addInternalError(
 						new(InvalidTypeError),
 						context,
 						currentNode,
 						ErrorDetails{
-							"expected": currentSubSchema.types.String(),
+							"expected": currentSubSchema.Types.String(),
 							"given":    TYPE_OBJECT,
 						},
 					)
@@ -203,10 +203,10 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 				v.validateObject(currentSubSchema, castCurrentNode, result, context)
 				v.validateCommon(currentSubSchema, castCurrentNode, result, context)
 
-				for _, pSchema := range currentSubSchema.propertiesChildren {
-					nextNode, ok := castCurrentNode[pSchema.property]
+				for _, pSchema := range currentSubSchema.PropertiesChildren {
+					nextNode, ok := castCurrentNode[pSchema.Property]
 					if ok {
-						subContext := NewJsonContext(pSchema.property, context)
+						subContext := NewJsonContext(pSchema.Property, context)
 						v.validateRecursive(pSchema, nextNode, result, subContext)
 					}
 				}
@@ -215,13 +215,13 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 
 			case reflect.Bool:
 
-				if currentSubSchema.types.IsTyped() && !currentSubSchema.types.Contains(TYPE_BOOLEAN) {
+				if currentSubSchema.Types.IsTyped() && !currentSubSchema.Types.Contains(TYPE_BOOLEAN) {
 					result.addInternalError(
 						new(InvalidTypeError),
 						context,
 						currentNode,
 						ErrorDetails{
-							"expected": currentSubSchema.types.String(),
+							"expected": currentSubSchema.Types.String(),
 							"given":    TYPE_BOOLEAN,
 						},
 					)
@@ -237,13 +237,13 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 
 			case reflect.String:
 
-				if currentSubSchema.types.IsTyped() && !currentSubSchema.types.Contains(TYPE_STRING) {
+				if currentSubSchema.Types.IsTyped() && !currentSubSchema.Types.Contains(TYPE_STRING) {
 					result.addInternalError(
 						new(InvalidTypeError),
 						context,
 						currentNode,
 						ErrorDetails{
-							"expected": currentSubSchema.types.String(),
+							"expected": currentSubSchema.Types.String(),
 							"given":    TYPE_STRING,
 						},
 					)
@@ -468,18 +468,18 @@ func (v *subSchema) validateArray(currentSubSchema *subSchema, value []interface
 	if currentSubSchema.itemsChildrenIsSingleSchema {
 		for i := range value {
 			subContext := NewJsonContext(strconv.Itoa(i), context)
-			validationResult := currentSubSchema.itemsChildren[0].subValidateWithContext(value[i], subContext)
+			validationResult := currentSubSchema.ItemsChildren[0].subValidateWithContext(value[i], subContext)
 			result.mergeErrors(validationResult)
 		}
 	} else {
-		if currentSubSchema.itemsChildren != nil && len(currentSubSchema.itemsChildren) > 0 {
+		if currentSubSchema.ItemsChildren != nil && len(currentSubSchema.ItemsChildren) > 0 {
 
-			nbItems := len(currentSubSchema.itemsChildren)
+			nbItems := len(currentSubSchema.ItemsChildren)
 
 			// while we have both schemas and values, check them against each other
 			for i := 0; i != nbItems && i != nbValues; i++ {
 				subContext := NewJsonContext(strconv.Itoa(i), context)
-				validationResult := currentSubSchema.itemsChildren[i].subValidateWithContext(value[i], subContext)
+				validationResult := currentSubSchema.ItemsChildren[i].subValidateWithContext(value[i], subContext)
 				result.mergeErrors(validationResult)
 			}
 
@@ -620,7 +620,7 @@ func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string
 				new(RequiredError),
 				context,
 				value,
-				ErrorDetails{"property": requiredProperty},
+				ErrorDetails{"Property": requiredProperty},
 			)
 		}
 	}
@@ -628,15 +628,15 @@ func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string
 	// additionalProperty & patternProperty:
 	for pk := range value {
 
-		// Check whether this property is described by "properties"
+		// Check whether this Property is described by "properties"
 		found := false
-		for _, spValue := range currentSubSchema.propertiesChildren {
-			if pk == spValue.property {
+		for _, spValue := range currentSubSchema.PropertiesChildren {
+			if pk == spValue.Property {
 				found = true
 			}
 		}
 
-		//  Check whether this property is described by "patternProperties"
+		//  Check whether this Property is described by "patternProperties"
 		ppMatch := v.validatePatternProperty(currentSubSchema, pk, value[pk], result, context)
 
 		// If it is not described by neither "properties" nor "patternProperties" it must pass "additionalProperties"
@@ -649,7 +649,7 @@ func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string
 						new(AdditionalPropertyNotAllowedError),
 						context,
 						value[pk],
-						ErrorDetails{"property": pk},
+						ErrorDetails{"Property": pk},
 					)
 
 				}
@@ -668,7 +668,7 @@ func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string
 				result.addInternalError(new(InvalidPropertyNameError),
 					context,
 					value, ErrorDetails{
-						"property": pk,
+						"Property": pk,
 					})
 				result.mergeErrors(validationResult)
 			}
