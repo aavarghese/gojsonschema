@@ -620,7 +620,7 @@ func (v *SubSchema) validateObject(currentSubSchema *SubSchema, value map[string
 				new(RequiredError),
 				context,
 				value,
-				ErrorDetails{"Property": requiredProperty},
+				ErrorDetails{"property": requiredProperty},
 			)
 		}
 	}
@@ -628,7 +628,7 @@ func (v *SubSchema) validateObject(currentSubSchema *SubSchema, value map[string
 	// additionalProperty & patternProperty:
 	for pk := range value {
 
-		// Check whether this Property is described by "properties"
+		// Check whether this property is described by "properties"
 		found := false
 		for _, spValue := range currentSubSchema.PropertiesChildren {
 			if pk == spValue.Property {
@@ -636,7 +636,7 @@ func (v *SubSchema) validateObject(currentSubSchema *SubSchema, value map[string
 			}
 		}
 
-		//  Check whether this Property is described by "patternProperties"
+		//  Check whether this property is described by "patternProperties"
 		ppMatch := v.validatePatternProperty(currentSubSchema, pk, value[pk], result, context)
 
 		// If it is not described by neither "properties" nor "patternProperties" it must pass "additionalProperties"
@@ -649,7 +649,7 @@ func (v *SubSchema) validateObject(currentSubSchema *SubSchema, value map[string
 						new(AdditionalPropertyNotAllowedError),
 						context,
 						value[pk],
-						ErrorDetails{"Property": pk},
+						ErrorDetails{"property": pk},
 					)
 
 				}
@@ -668,7 +668,7 @@ func (v *SubSchema) validateObject(currentSubSchema *SubSchema, value map[string
 				result.addInternalError(new(InvalidPropertyNameError),
 					context,
 					value, ErrorDetails{
-						"Property": pk,
+						"property": pk,
 					})
 				result.mergeErrors(validationResult)
 			}

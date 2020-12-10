@@ -17,7 +17,7 @@
 // author-mail      xeipuuv@gmail.com
 //
 // repository-name  gojsonschema
-// repository-desc  An implementation of JSON Schema, based on IETF's Draft v4 - Go language.
+// repository-desc  An implementation of JSON Schema, based on IETF's draft v4 - Go language.
 //
 // description      Defines Schema, the main entry to every SubSchema.
 //                  Contains the parsing logic and error checking.
@@ -58,8 +58,8 @@ type Schema struct {
 	ReferencePool     *schemaReferencePool
 }
 
-func (d *Schema) parse(document interface{}, Draft Draft) error {
-	d.RootSchema = &SubSchema{Property: STRING_ROOT_SCHEMA_PROPERTY, Draft: &Draft}
+func (d *Schema) parse(document interface{}, draft Draft) error {
+	d.RootSchema = &SubSchema{Property: STRING_ROOT_SCHEMA_PROPERTY, Draft: &draft}
 	return d.parseSchema(document, d.RootSchema)
 }
 
@@ -83,7 +83,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *SubSchema)
 		currentSchema.Draft = currentSchema.Parent.Draft
 	}
 
-	// As of Draft 6 "true" is equivalent to an empty schema "{}" and false equals "{"not":{}}"
+	// As of draft 6 "true" is equivalent to an empty schema "{}" and false equals "{"not":{}}"
 	if *currentSchema.Draft >= Draft6 && isKind(documentNode, reflect.Bool) {
 		b := documentNode.(bool)
 		currentSchema.pass = &b
@@ -110,8 +110,8 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *SubSchema)
 		currentSchema.Id = currentSchema.Parent.Id
 	}
 
-	// In Draft 6 the Id keyword was renamed to $Id
-	// Hybrid mode uses the old Id by default
+	// In draft 6 the id keyword was renamed to $id
+	// Hybrid mode uses the old id by default
 	var keyID string
 
 	switch *currentSchema.Draft {
@@ -142,11 +142,11 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *SubSchema)
 		if currentSchema == d.RootSchema {
 			currentSchema.Id = &jsonReference
 		} else {
-			Ref, err := currentSchema.Parent.Id.Inherits(jsonReference)
+			ref, err := currentSchema.Parent.Id.Inherits(jsonReference)
 			if err != nil {
 				return err
 			}
-			currentSchema.Id = Ref
+			currentSchema.Id = ref
 		}
 	}
 
@@ -213,7 +213,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *SubSchema)
 		currentSchema.description = &k
 	}
 
-	// $Ref
+	// $ref
 	if existsMapKey(m, KEY_REF) && !isKind(m[KEY_REF], reflect.String) {
 		return errors.New(formatErrorDescription(
 			Locale.InvalidType(),
